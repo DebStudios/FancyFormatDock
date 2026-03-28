@@ -1,14 +1,12 @@
 {
 	"required": true,
-	"package": "net.debrooo.mixin",
+	"package": "net.debrooo.mixin.client",
 	"compatibilityLevel": "JAVA_21",
-	"mixins": [
-		"ExampleMixin"
+	"client": [
+		"ExampleClientMixin",
+		"ChatScreenAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1
-	},
-	"overwrites": {
-		"requireAnnotations": true
 	}
 }

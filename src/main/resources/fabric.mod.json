@@ -19,7 +19,7 @@
 			"net.debrooo.Format_Panel"
 		],
 		"client": [
-			"net.debrooo.Format_PanelClient"
+			"net.debrooo.client.Format_PanelClient"
 		]
 	},
 	"mixins": [
