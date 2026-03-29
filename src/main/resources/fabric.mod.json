@@ -2,10 +2,10 @@
 	"schemaVersion": 1,
 	"id": "format_panel",
 	"version": "${version}",
-	"name": "Format_Panel",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "FancyFormatDock",
+	"description": "Chat formatting, made easier",
 	"authors": [
-		"Me!"
+		"debrooo"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
@@ -18,6 +18,10 @@
 		"main": [
 			"net.debrooo.Format_Panel"
 		],
+		"modmenu": [
+			"net.debrooo.client.FormatConfigScreen"
+		],
+
 		"client": [
 			"net.debrooo.client.Format_PanelClient"
 		]

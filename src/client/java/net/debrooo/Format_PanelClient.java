@@ -7,16 +7,19 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.components.EditBox;
-import eu.midnightdust.lib.config.MidnightConfig;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Format_PanelClient implements ClientModInitializer {
 
-	private static final String[] CODES_VANILLA     = { "§4","§c","§6","§e","§2","§a","§b","§3","§1","§9","§d","§5","§f","§7","§8","§0","§l","§n","§o","§r","§m","§k" };
-	private static final String[] CODES_ESSENTIALS  = { "&4","&c","&6","&e","&2","&a","&b","&3","&1","&9","&d","&5","&f","&7","&8","&0","&l","&n","&o","&r","&m","&k" };
-	private static final String[] CODES_MINIMESSAGE = { "<dark_red>","<red>","<gold>","<yellow>","<dark_green>","<green>","<aqua>","<dark_aqua>","<dark_blue>","<blue>","<light_purple>","<dark_purple>","<white>","<gray>","<dark_gray>","<black>","<bold>","<underlined>","<italic>","<reset>","<strikethrough>","<obfuscated>" };
+	private static final String[] CODES = {
+			"&4", "&c", "&6", "&e",
+			"&2", "&a", "&b", "&3",
+			"&1", "&9", "&d", "&5",
+			"&f", "&7", "&8", "&0",
+			"&l", "&n", "&o", "&r"
+	};
 
 	private static final int[] COLORS = {
 			0xFFAA0000, // &4 Dark Red
@@ -39,8 +42,6 @@ public class Format_PanelClient implements ClientModInitializer {
 			0xFFC6C6C6, // &n Underline
 			0xFFC6C6C6, // &o Italic
 			0xFFC6C6C6, // &r Reset
-			0xFFC6C6C6, // &m Strikethrough
-			0xFFC6C6C6, // &k Obfuscated
 	};
 
 	private static final String[] LABELS = {
@@ -48,20 +49,22 @@ public class Format_PanelClient implements ClientModInitializer {
 			"§r", "§r", "§r", "§r",
 			"§r", "§r", "§r", "§r",
 			"§r", "§r", "§r", "§r",
-			"§lb", "§nu", "§oi", "R",
-			"§mS", "§kK"
+			"§lb", "§nu", "§oi", "R"
 	};
+
+	// Extra buttons
+	private static final String   EXTRA_CODE_S  = "&m";
+	private static final String   EXTRA_CODE_K  = "&k";
+	private static final String   EXTRA_LABEL_S = "§mS";
+	private static final String   EXTRA_LABEL_K = "§kK";
+	private static final int      EXTRA_COLOR   = 0xFFC6C6C6;
 
 	private final List<ColorButton> buttons = new ArrayList<>();
 
 	@Override
 	public void onInitializeClient() {
-		MidnightConfig.init("format_panel", FormatPanelConfig.class);
-
 		ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
 			if (screen instanceof ChatScreen chatScreen) {
-				if (!FormatPanelConfig.enabled) return;
-
 				buttons.clear();
 
 				int btnSize = 20;
@@ -78,56 +81,52 @@ public class Format_PanelClient implements ClientModInitializer {
 					int x = startX + col * (btnSize + margin);
 					int y = startY + row * (btnSize + margin);
 
-					final int   idx     = i;
-					final int   bgColor = COLORS[i];
-					final String label  = LABELS[i];
-					final boolean dark  = isDark(bgColor);
+					final String code    = CODES[i];
+					final int   bgColor  = COLORS[i];
+					final String label   = LABELS[i];
+					final boolean dark   = isDark(bgColor);
 
 					buttons.add(new ColorButton(
 							x, y, btnSize, btnSize,
 							label, bgColor, dark,
-							b -> insertCode(chatScreen, getActiveCodes()[idx])
+							b -> insertCode(chatScreen, code)
 					));
 				}
 
 				// Row 5: S at col 2, K at col 3 (right-aligned)
-				int extraY = startY + 5 * (btnSize + margin);
+				int extraRow = 5;
+				int extraY   = startY + extraRow * (btnSize + margin);
+
 				int xS = startX + 2 * (btnSize + margin);
 				int xK = startX + 3 * (btnSize + margin);
 
 				buttons.add(new ColorButton(xS, extraY, btnSize, btnSize,
-						LABELS[20], COLORS[20], isDark(COLORS[20]),
-						b -> insertCode(chatScreen, getActiveCodes()[20])));
+						EXTRA_LABEL_S, EXTRA_COLOR, isDark(EXTRA_COLOR),
+						b -> insertCode(chatScreen, EXTRA_CODE_S)));
 
 				buttons.add(new ColorButton(xK, extraY, btnSize, btnSize,
-						LABELS[21], COLORS[21], isDark(COLORS[21]),
-						b -> insertCode(chatScreen, getActiveCodes()[21])));
+						EXTRA_LABEL_K, EXTRA_COLOR, isDark(EXTRA_COLOR),
+						b -> insertCode(chatScreen, EXTRA_CODE_K)));
 
 				ScreenEvents.remove(screen).register(s -> buttons.clear());
 
 				ScreenEvents.afterRender(screen).register(
 						(s, context, mouseX, mouseY, tickDelta) -> {
-							if (!FormatPanelConfig.enabled) return;
-							for (ColorButton btn : buttons) btn.render(context, mouseX, mouseY);
+							for (ColorButton btn : buttons) {
+								btn.render(context, mouseX, mouseY);
+							}
 						}
 				);
 
 				ScreenMouseEvents.afterMouseClick(screen).register(
 						(s, mouseX, mouseY, button) -> {
-							if (!FormatPanelConfig.enabled) return;
-							for (ColorButton btn : buttons) btn.tryClick(mouseX, mouseY);
+							for (ColorButton btn : buttons) {
+								btn.tryClick(mouseX, mouseY);
+							}
 						}
 				);
 			}
 		});
-	}
-
-	private String[] getActiveCodes() {
-		switch (FormatPanelConfig.formatMode) {
-			case VANILLA:     return CODES_VANILLA;
-			case MINIMESSAGE: return CODES_MINIMESSAGE;
-			default:          return CODES_ESSENTIALS;
-		}
 	}
 
 	private void insertCode(ChatScreen screen, String code) {
