@@ -18,25 +18,23 @@ public class FormatConfigScreen implements ModMenuApi {
     public static Screen createConfigScreen(Screen parent) {
         ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
-                .setTitle(Component.literal("Format Panel Settings"));
+                .setTitle(Component.literal("FancyFormatDock Settings"));
 
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
         ConfigCategory general = builder.getOrCreateCategory(Component.literal("General"));
 
-        // enabled toggle
         general.addEntry(entryBuilder.startBooleanToggle(
-                        Component.literal("Enabled"), FormatPanelConfig.enabled)
+                        Component.literal("Enabled"), FormatPanelConfig.enabledStatic)
                 .setDefaultValue(true)
-                .setSaveConsumer(val -> FormatPanelConfig.enabled = val)
+                .setSaveConsumer(val -> FormatPanelConfig.enabledStatic = val)
                 .build());
 
-        // format mode dropdown
         general.addEntry(entryBuilder.startEnumSelector(
                         Component.literal("Format Mode"),
                         FormatPanelConfig.FormatMode.class,
-                        FormatPanelConfig.formatMode)
-                .setDefaultValue(FormatPanelConfig.FormatMode.ESSENTIALS)
-                .setSaveConsumer(val -> FormatPanelConfig.formatMode = val)
+                        FormatPanelConfig.formatModeStatic)
+                .setDefaultValue(FormatPanelConfig.FormatMode.EssentialsX)
+                .setSaveConsumer(val -> FormatPanelConfig.formatModeStatic = val)
                 .build());
 
         builder.setSavingRunnable(FormatPanelConfig::save);
