@@ -231,8 +231,30 @@ public class ColorPickerOverlay extends Screen {
         ctx.drawCenteredString(font, label, bx+bw/2, by+(bh-font.lineHeight)/2, hovered ? BTN_TXT_HOV : BTN_TXT);
     }
 
-    private void renderSVBox(GuiGraphics ctx,int x,int y,int w,int h,float hue){for(int px2=0;px2<w;px2++){float s=(float)px2/w;for(int py2=0;py2<h;py2++)ctx.fill(x+px2,y+py2,x+px2+1,y+py2+1,0xFF000000|hsvToRgb(hue,s,1f-(float)py2/h));}}
-    private void renderHueBar(GuiGraphics ctx,int x,int y,int w,int h){for(int i=0;i<h;i++)ctx.fill(x,y+i,x+w,y+i+1,0xFF000000|hsvToRgb((float)i/h,1f,1f));}
+    private void renderSVBox(GuiGraphics ctx, int x, int y, int w, int h, float hue) {
+        int step = getStep();
+        for (int px2 = 0; px2 < w; px2 += step) {
+            float s = (float) px2 / w;
+            for (int py2 = 0; py2 < h; py2 += step) {
+                ctx.fill(x+px2, y+py2, x+px2+step, y+py2+step,
+                        0xFF000000 | hsvToRgb(hue, s, 1f-(float)py2/h));
+            }
+        }
+    }
+
+    private void renderHueBar(GuiGraphics ctx, int x, int y, int w, int h) {
+        int step = getStep();
+        for (int i = 0; i < h; i += step)
+            ctx.fill(x, y+i, x+w, y+i+step, 0xFF000000 | hsvToRgb((float)i/h, 1f, 1f));
+    }
+
+    private int getStep() {
+        switch (FormatPanelConfig.colorPickerQuality) {
+            case Low:  return 6;
+            case High: return 2;
+            default:   return 4;
+        }
+    }
     private void renderGradientStrip(GuiGraphics ctx,int x,int y,int w,int h,int c1,int c2){int r1=(c1>>16)&0xFF,g1=(c1>>8)&0xFF,b1=c1&0xFF,r2=(c2>>16)&0xFF,g2=(c2>>8)&0xFF,b2=c2&0xFF;for(int i=0;i<w;i++){float t=(float)i/w;ctx.fill(x+i,y,x+i+1,y+h,0xFF000000|((int)(r1+t*(r2-r1))<<16)|((int)(g1+t*(g2-g1))<<8)|(int)(b1+t*(b2-b1)));}}
 
     private static int hsvToRgb(float h,float s,float v){int hi=(int)(h*6)%6;float f=h*6-(int)(h*6),p=v*(1-s),q=v*(1-f*s),t=v*(1-(1-f)*s),r,g,b;switch(hi){case 0:r=v;g=t;b=p;break;case 1:r=q;g=v;b=p;break;case 2:r=p;g=v;b=t;break;case 3:r=p;g=q;b=v;break;case 4:r=t;g=p;b=v;break;default:r=v;g=p;b=q;break;}return((int)(r*255)<<16)|((int)(g*255)<<8)|(int)(b*255);}

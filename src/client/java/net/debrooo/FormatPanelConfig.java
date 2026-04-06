@@ -20,10 +20,19 @@ public class FormatPanelConfig {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
+
     public enum FormatMode {
         Vanilla,
         EssentialsX,
         MiniMessage
+    }
+
+    public static RenderQuality colorPickerQuality = RenderQuality.Medium;
+    public enum RenderQuality {
+        Low,    // step = 4
+        Medium, // step = 2
+        High    // step = 1
+
     }
 
     public static void load() {
@@ -36,6 +45,7 @@ public class FormatPanelConfig {
             FormatPanelConfig data = GSON.fromJson(r, FormatPanelConfig.class);
             enabledStatic = data.enabled;
             formatModeStatic = data.formatMode;
+            colorPickerQuality = data.colorPickerQuality;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -46,6 +56,7 @@ public class FormatPanelConfig {
             FormatPanelConfig data = new FormatPanelConfig();
             data.enabled = enabledStatic;
             data.formatMode = formatModeStatic;
+            data.colorPickerQuality =  colorPickerQuality;
             GSON.toJson(data, w);
         } catch (Exception e) {
             e.printStackTrace();

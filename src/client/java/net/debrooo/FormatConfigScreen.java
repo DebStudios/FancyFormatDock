@@ -39,6 +39,18 @@ public class FormatConfigScreen implements ModMenuApi {
 
         builder.setSavingRunnable(FormatPanelConfig::save);
 
+        general.addEntry(entryBuilder.startEnumSelector(
+                        Component.literal("Color Picker Quality"),
+                        FormatPanelConfig.RenderQuality.class,
+                        FormatPanelConfig.colorPickerQuality)
+                .setDefaultValue(FormatPanelConfig.RenderQuality.Medium)
+                .setSaveConsumer(val -> FormatPanelConfig.colorPickerQuality = val)
+                .build());
+
         return builder.build();
+
+
     }
+
+
 }
