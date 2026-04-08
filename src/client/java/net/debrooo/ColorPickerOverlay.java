@@ -6,6 +6,7 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 
 public class ColorPickerOverlay extends Screen {
 
@@ -48,7 +49,7 @@ public class ColorPickerOverlay extends Screen {
         messageInput = new EditBox(this.font, px + 10, py + 206, PW - 20, 16,
                 Component.literal("Message"));
         messageInput.setMaxLength(128);
-        messageInput.setValue("hello world");
+        messageInput.setValue("buh");
         this.addWidget(messageInput);
     }
 
@@ -100,7 +101,17 @@ public class ColorPickerOverlay extends Screen {
         ctx.drawString(font, truncate(preview, 14), preX, svY+70, 0xFF777777, false);
 
         boolean hovImp = isIn(mx, my, preX, svY+84, 68, 20);
-        renderBtn(ctx, font, preX, svY+84, 68, 20, "IMPORT", false, hovImp);
+        renderBtn(ctx, font, preX, svY+84, 68, 20, "Import", false, hovImp);
+
+        // cro easter egg
+        int croX = px + 6, croY = py + PH - 26;
+        ctx.blit(
+                ResourceLocation.fromNamespaceAndPath("format_panel", "textures/gui/cro.png"),
+                croX, croY, 0, 0, 20, 20, 20, 20
+        );
+        if (mx >= croX && mx < croX + 20 && my >= croY && my < croY + 20) {
+            ctx.renderTooltip(font, Component.literal("cro"), mx, my);
+        }
     }
 
     private void renderGradientTab(GuiGraphics ctx, net.minecraft.client.gui.Font font, int px, int py, int mx, int my) {
@@ -135,7 +146,17 @@ public class ColorPickerOverlay extends Screen {
         messageInput.render(ctx,0,0,0);
 
         boolean hovImp=isIn(mx,my,px+PW-82,py+PH-22,74,20);
-        renderBtn(ctx,font,px+PW-82,py+PH-22,74,20,"IMPORT ->",false,hovImp);
+        renderBtn(ctx,font,px+PW-82,py+PH-22,74,20,"Import",false,hovImp);
+
+        // cro easter egg
+            int croX = px + 6, croY = py + PH - 26;
+            ctx.blit(
+                    ResourceLocation.fromNamespaceAndPath("format_panel", "textures/gui/cro.png"),
+                    croX, croY, 0, 0, 20, 20, 20, 20
+            );
+            if (mx >= croX && mx < croX + 20 && my >= croY && my < croY + 20) {
+                ctx.renderTooltip(font, Component.literal("cro"), mx, my);
+            }
     }
 
     @Override

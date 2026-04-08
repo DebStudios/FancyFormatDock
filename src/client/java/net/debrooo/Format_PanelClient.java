@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -58,7 +59,9 @@ public class Format_PanelClient implements ClientModInitializer {
 			"§mS", "§kK"
 	};
 
-	// CopyOnWriteArrayList prevents ConcurrentModificationException
+	private static final ResourceLocation TOGGLE_ICON =
+			ResourceLocation.fromNamespaceAndPath("format_panel", "textures/gui/toggle.png");
+
 	private final List<ColorButton> buttons = new CopyOnWriteArrayList<>();
 
 	@Override
@@ -67,70 +70,85 @@ public class Format_PanelClient implements ClientModInitializer {
 
 		ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
 			if (screen instanceof ChatScreen chatScreen) {
-				if (!FormatPanelConfig.enabledStatic) return;
-
 				buttons.clear();
 
-				int btnSize = 20;
-				int margin  = 3;
-				int cols    = 4;
+				// toggle button — always visible
+				int existingButtons = screen.children().stream()
+						.filter(w -> w instanceof net.minecraft.client.gui.components.AbstractWidget)
+						.map(w -> (net.minecraft.client.gui.components.AbstractWidget) w)
+						.filter(w -> w.getY() >= scaledHeight - 30)
+						.mapToInt(w -> 1)
+						.sum();
 
-				int startX = scaledWidth - (cols * (btnSize + margin)) - 6;
-				int startY = 11;
+				int toggleX = scaledWidth - 2 - (existingButtons * 24);
+				int toggleY = scaledHeight - 40;
 
-				// 20 main buttons
-				for (int i = 0; i < 20; i++) {
-					int col = i % cols;
-					int row = i / cols;
-					int x = startX + col * (btnSize + margin);
-					int y = startY + row * (btnSize + margin);
+				buttons.add(new ColorButton(
+						toggleX, toggleY, 20, 20,
+						"", 0xFF8B8B8B, true,
+						b -> {
+							FormatPanelConfig.enabledStatic = !FormatPanelConfig.enabledStatic;
+							FormatPanelConfig.save();
+							Minecraft mc = Minecraft.getInstance();
+							mc.execute(() -> mc.setScreen(new ChatScreen("")));
+						}
+				));
 
-					final int idx     = i;
-					final int bgColor = COLORS[i];
-					final String label = LABELS[i];
-					final boolean dark = isDark(bgColor);
+				if (FormatPanelConfig.enabledStatic) {
+					int btnSize = 20;
+					int margin  = 3;
+					int cols    = 4;
 
-					buttons.add(new ColorButton(
-							x, y, btnSize, btnSize,
-							label, bgColor, dark,
-							b -> insertCode(chatScreen, getActiveCodes()[idx])
-					));
+					int startX = scaledWidth - (cols * (btnSize + margin)) - 6;
+					int startY = 11;
+
+					for (int i = 0; i < 20; i++) {
+						int col = i % cols;
+						int row = i / cols;
+						int x = startX + col * (btnSize + margin);
+						int y = startY + row * (btnSize + margin);
+
+						final int idx      = i;
+						final int bgColor  = COLORS[i];
+						final String label = LABELS[i];
+						final boolean dark = isDark(bgColor);
+
+						buttons.add(new ColorButton(
+								x, y, btnSize, btnSize,
+								label, bgColor, dark,
+								b2 -> insertCode(chatScreen, getActiveCodes()[idx])
+						));
+					}
+
+					int extraY = startY + 5 * (btnSize + margin);
+					int plusX  = startX + 1 * (btnSize + margin);
+
+					buttons.add(new ColorButton(plusX, extraY, btnSize, btnSize,
+							"+", 0xFF444444, true,
+							b2 -> Minecraft.getInstance().execute(() ->
+									Minecraft.getInstance().setScreen(
+											new ColorPickerOverlay(chatScreen, chatScreen)
+									)
+							)));
+
+					buttons.add(new ColorButton(startX + 2*(btnSize+margin), extraY, btnSize, btnSize,
+							LABELS[20], COLORS[20], isDark(COLORS[20]),
+							b2 -> insertCode(chatScreen, getActiveCodes()[20])));
+					buttons.add(new ColorButton(startX + 3*(btnSize+margin), extraY, btnSize, btnSize,
+							LABELS[21], COLORS[21], isDark(COLORS[21]),
+							b2 -> insertCode(chatScreen, getActiveCodes()[21])));
 				}
-
-				int extraY = startY + 5 * (btnSize + margin);
-
-				// "+" button at col 0, row 5 (left of S)
-				int plusX = startX + 1 * (btnSize + margin);
-				buttons.add(new ColorButton(plusX, extraY, btnSize, btnSize,
-						"+", 0xFF444444, true,
-						b -> Minecraft.getInstance().execute(() ->
-								Minecraft.getInstance().setScreen(
-										new ColorPickerOverlay(chatScreen, chatScreen)
-								)
-						)));
-
-				// col 1 empty
-
-				// S at col 2, K at col 3
-				buttons.add(new ColorButton(startX + 2*(btnSize+margin), extraY, btnSize, btnSize,
-						LABELS[20], COLORS[20], isDark(COLORS[20]),
-						b -> insertCode(chatScreen, getActiveCodes()[20])));
-				buttons.add(new ColorButton(startX + 3*(btnSize+margin), extraY, btnSize, btnSize,
-						LABELS[21], COLORS[21], isDark(COLORS[21]),
-						b -> insertCode(chatScreen, getActiveCodes()[21])));
 
 				ScreenEvents.remove(screen).register(s -> buttons.clear());
 
 				ScreenEvents.afterRender(screen).register(
 						(s, context, mouseX, mouseY, tickDelta) -> {
-							if (!FormatPanelConfig.enabledStatic) return;
 							for (ColorButton btn : buttons) btn.render(context, mouseX, mouseY);
 						}
 				);
 
 				ScreenMouseEvents.afterMouseClick(screen).register(
 						(s, mouseX, mouseY, button) -> {
-							if (!FormatPanelConfig.enabledStatic) return;
 							for (ColorButton btn : buttons) btn.tryClick(mouseX, mouseY);
 						}
 				);
@@ -184,13 +202,20 @@ public class Format_PanelClient implements ClientModInitializer {
 			ctx.fill(x+width-2, y+1, x+width-1, y+height-1, 0xFF1A1A1A);
 			ctx.fill(x+2, y+2, x+width-2, y+height-2, hovered ? brighten(bgColor) : bgColor);
 
-			var font = Minecraft.getInstance().font;
-			int textColor = darkBg ? 0xFFFFFFFF : 0xFF111111;
-			ctx.pose().pushPose();
-			ctx.pose().translate(x + width/2f, y + height/2f, 0);
-			ctx.pose().scale(0.9f, 0.9f, 1f);
-			ctx.drawString(font, label, -font.width(label)/2, -font.lineHeight/2, textColor, false);
-			ctx.pose().popPose();
+			if (label.isEmpty()) {
+				ctx.blit(
+						TOGGLE_ICON,
+						x+2, y+2, 0, 0, width-4, height-4, width-4, height-4
+				);
+			} else {
+				var font = Minecraft.getInstance().font;
+				int textColor = darkBg ? 0xFFFFFFFF : 0xFF111111;
+				ctx.pose().pushPose();
+				ctx.pose().translate(x + width/2f, y + height/2f, 0);
+				ctx.pose().scale(0.9f, 0.9f, 1f);
+				ctx.drawString(font, label, -font.width(label)/2, -font.lineHeight/2, textColor, false);
+				ctx.pose().popPose();
+			}
 		}
 
 		void tryClick(double mx, double my) { if (isHovered(mx, my)) onClick.accept(this); }
