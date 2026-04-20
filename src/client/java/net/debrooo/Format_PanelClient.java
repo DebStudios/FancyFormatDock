@@ -72,7 +72,7 @@ public class Format_PanelClient implements ClientModInitializer {
 			if (screen instanceof ChatScreen chatScreen) {
 				buttons.clear();
 
-				// toggle button — always visible
+				// Toggle button — always visible
 				int existingButtons = screen.children().stream()
 						.filter(w -> w instanceof net.minecraft.client.gui.components.AbstractWidget)
 						.map(w -> (net.minecraft.client.gui.components.AbstractWidget) w)
@@ -102,6 +102,7 @@ public class Format_PanelClient implements ClientModInitializer {
 					int startX = scaledWidth - (cols * (btnSize + margin)) - 6;
 					int startY = 11;
 
+					// Main color buttons
 					for (int i = 0; i < 20; i++) {
 						int col = i % cols;
 						int row = i / cols;
@@ -120,6 +121,7 @@ public class Format_PanelClient implements ClientModInitializer {
 						));
 					}
 
+					// Extra row: +, strikethrough, obfuscated
 					int extraY = startY + 5 * (btnSize + margin);
 					int plusX  = startX + 1 * (btnSize + margin);
 
@@ -137,19 +139,42 @@ public class Format_PanelClient implements ClientModInitializer {
 					buttons.add(new ColorButton(startX + 3*(btnSize+margin), extraY, btnSize, btnSize,
 							LABELS[21], COLORS[21], isDark(COLORS[21]),
 							b2 -> insertCode(chatScreen, getActiveCodes()[21])));
+
+					// Preset color buttons — rendered to the left of the main dock
+					if (FormatPanelConfig.presetButtonsEnabled) {
+						int presetX = startX - (btnSize + margin);
+						int renderedCount = 0;
+
+						for (int i = 0; i < 4; i++) {
+							FormatPanelConfig.PresetButton pb = FormatPanelConfig.presetButtons[i];
+							if (!pb.enabled) continue;
+
+							int argbColor = (int) Long.parseLong("FF" + pb.hex, 16);
+							final String hex = pb.hex;
+
+							buttons.add(new ColorButton(
+									presetX,
+									startY + renderedCount * (btnSize + margin),
+									btnSize, btnSize,
+									" ", argbColor, isDark(argbColor),
+									b2 -> insertCode(chatScreen, getColorCodeForHex(hex))
+							));
+							renderedCount++;
+						}
+					}
 				}
 
 				ScreenEvents.remove(screen).register(s -> buttons.clear());
 
 				ScreenEvents.afterRender(screen).register(
 						(s, context, mouseX, mouseY, tickDelta) -> {
-							for (ColorButton btn : buttons) btn.render(context, mouseX, mouseY);
+							for (ColorButton btn : buttons) btn.render(context, (double) mouseX, (double) mouseY);
 						}
 				);
 
 				ScreenMouseEvents.afterMouseClick(screen).register(
 						(s, mouseX, mouseY, button) -> {
-							for (ColorButton btn : buttons) btn.tryClick(mouseX, mouseY);
+							for (ColorButton btn : buttons) btn.tryClick((double) mouseX, (double) mouseY);
 						}
 				);
 			}
@@ -161,6 +186,15 @@ public class Format_PanelClient implements ClientModInitializer {
 		if (mode == FormatPanelConfig.FormatMode.Vanilla)     return CODES_VANILLA;
 		if (mode == FormatPanelConfig.FormatMode.MiniMessage) return CODES_MINIMESSAGE;
 		return CODES_ESSENTIALS;
+	}
+
+	private String getColorCodeForHex(String hex) {
+		FormatPanelConfig.FormatMode mode = FormatPanelConfig.formatModeStatic;
+		if (mode == FormatPanelConfig.FormatMode.MiniMessage) return "<color:#" + hex + ">";
+		if (mode == FormatPanelConfig.FormatMode.EssentialsX) return "&#" + hex;
+		StringBuilder sb = new StringBuilder("§x");
+		for (char c : hex.toCharArray()) sb.append("§").append(c);
+		return sb.toString();
 	}
 
 	private void insertCode(ChatScreen screen, String code) {
