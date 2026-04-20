@@ -25,14 +25,13 @@ public class ColorPickerOverlay extends Screen {
     private static final int PW = 290, PH = 270;
     private static final int SV_SIZE = 100, H_W = 14, H_H = SV_SIZE;
 
-    // Vanilla MC button colors (exact like options screen)
     private static final int BTN_BORDER   = 0xFF000000;
     private static final int BTN_FILL     = 0xFF404040;
-    private static final int BTN_FILL_HOV = 0xFF606090; // blueish hover
+    private static final int BTN_FILL_HOV = 0xFF606090;
     private static final int BTN_HL       = 0xFFA0A0A0;
     private static final int BTN_SH       = 0xFF202020;
     private static final int BTN_TXT      = 0xFFFFFFFF;
-    private static final int BTN_TXT_HOV  = 0xFFFFFFA0; // yellow on hover
+    private static final int BTN_TXT_HOV  = 0xFFFFFFA0;
     private static final int PANEL_BG     = 0xFF1E1E1E;
     private static final int PANEL_TITLE  = 0xFF2A2A2A;
     private static final int DIVIDER      = 0xFF555555;
@@ -60,18 +59,15 @@ public class ColorPickerOverlay extends Screen {
 
         super.render(ctx, mouseX, mouseY, delta);
 
-        // Dark panel
         ctx.fill(px, py, px + PW, py + PH, PANEL_BG);
 
-        // Title bar
         ctx.fill(px, py, px + PW, py + 20, PANEL_TITLE);
         ctx.fill(px, py + 19, px + PW, py + 20, DIVIDER);
         ctx.drawCenteredString(font, "Custom Color", px + PW / 2, py + 6, BTN_TXT);
 
-        // Tabs
         int half = (PW - 4) / 2;
-        renderBtn(ctx, font, px + 2,             py + 22, half, 20, "Single Color", activeTab == 0, isIn(mouseX, mouseY, px + 2, py + 22, half, 20));
-        renderBtn(ctx, font, px + 2 + half + 2,  py + 22, half, 20, "Gradient",     activeTab == 1, isIn(mouseX, mouseY, px + 2 + half + 2, py + 22, half, 20));
+        renderBtn(ctx, font, px + 2,            py + 22, half, 20, "Single Color", activeTab == 0, isIn(mouseX, mouseY, px + 2, py + 22, half, 20));
+        renderBtn(ctx, font, px + 2 + half + 2, py + 22, half, 20, "Gradient",     activeTab == 1, isIn(mouseX, mouseY, px + 2 + half + 2, py + 22, half, 20));
         ctx.fill(px, py + 43, px + PW, py + 44, DIVIDER);
 
         if (activeTab == 0) renderSingleTab(ctx, font, px, py, mouseX, mouseY);
@@ -84,7 +80,8 @@ public class ColorPickerOverlay extends Screen {
         ctx.fill(svX-1, svY-1, svX+SV_SIZE+1, svY+SV_SIZE+1, BTN_BORDER);
         renderSVBox(ctx, svX, svY, SV_SIZE, SV_SIZE, hue1);
         int cx = svX+(int)(sat1*SV_SIZE), cy = svY+(int)((1-val1)*SV_SIZE);
-        ctx.fill(cx-2, cy-2, cx+2, cy+2, 0xFFFFFFFF); ctx.fill(cx-1, cy-1, cx+1, cy+1, 0xFF000000);
+        ctx.fill(cx-2, cy-2, cx+2, cy+2, 0xFFFFFFFF);
+        ctx.fill(cx-1, cy-1, cx+1, cy+1, 0xFF000000);
 
         ctx.fill(hX-1, svY-1, hX+H_W+1, svY+H_H+1, BTN_BORDER);
         renderHueBar(ctx, hX, svY, H_W, H_H);
@@ -103,12 +100,9 @@ public class ColorPickerOverlay extends Screen {
         boolean hovImp = isIn(mx, my, preX, svY+84, 68, 20);
         renderBtn(ctx, font, preX, svY+84, 68, 20, "Import", false, hovImp);
 
-        // cro easter egg
         int croX = px + 6, croY = py + PH - 26;
-        ctx.blit(
-                ResourceLocation.fromNamespaceAndPath("format_panel", "textures/gui/cro.png"),
-                croX, croY, 0, 0, 20, 20, 20, 20
-        );
+        ctx.blit(ResourceLocation.fromNamespaceAndPath("format_panel", "textures/gui/cro.png"),
+                croX, croY, 0, 0, 20, 20, 20, 20);
         if (mx >= croX && mx < croX + 20 && my >= croY && my < croY + 20) {
             ctx.renderTooltip(font, Component.literal("cro"), mx, my);
         }
@@ -124,7 +118,8 @@ public class ColorPickerOverlay extends Screen {
         ctx.fill(svX-1,svY-1,svX+SV_SIZE+1,svY+SV_SIZE+1,BTN_BORDER);
         renderSVBox(ctx,svX,svY,SV_SIZE,SV_SIZE,hue);
         int cx=svX+(int)(sat*SV_SIZE), cy=svY+(int)((1-val)*SV_SIZE);
-        ctx.fill(cx-2,cy-2,cx+2,cy+2,0xFFFFFFFF); ctx.fill(cx-1,cy-1,cx+1,cy+1,0xFF000000);
+        ctx.fill(cx-2,cy-2,cx+2,cy+2,0xFFFFFFFF);
+        ctx.fill(cx-1,cy-1,cx+1,cy+1,0xFF000000);
 
         ctx.fill(hX-1,svY-1,hX+H_W+1,svY+H_H+1,BTN_BORDER);
         renderHueBar(ctx,hX,svY,H_W,H_H);
@@ -135,8 +130,8 @@ public class ColorPickerOverlay extends Screen {
         int c1=hsvToRgb(hue2a,sat2a,val2a), c2=hsvToRgb(hue2b,sat2b,val2b);
         ctx.fill(preX-1,svY-1,  preX+36,svY+36,  BTN_BORDER); ctx.fill(preX,svY,    preX+35,svY+35,  0xFF000000|c1);
         ctx.fill(preX-1,svY+40, preX+36,svY+76,  BTN_BORDER); ctx.fill(preX,svY+40, preX+35,svY+75,  0xFF000000|c2);
-        ctx.drawString(font,String.format("#%06X",c1),preX+38,svY+10, TXT_LABEL,false);
-        ctx.drawString(font,String.format("#%06X",c2),preX+38,svY+50, TXT_LABEL,false);
+        ctx.drawString(font,String.format("#%06X",c1),preX+38,svY+10,TXT_LABEL,false);
+        ctx.drawString(font,String.format("#%06X",c2),preX+38,svY+50,TXT_LABEL,false);
 
         ctx.fill(px+9,py+178,px+PW-9,py+192,BTN_BORDER);
         renderGradientStrip(ctx,px+10,py+179,PW-20,12,c1,c2);
@@ -145,25 +140,32 @@ public class ColorPickerOverlay extends Screen {
         messageInput.setX(px+10); messageInput.setY(py+206);
         messageInput.render(ctx,0,0,0);
 
+        // char count indicator
+        String msg = messageInput.getValue();
+        if (!msg.isEmpty()) {
+            String hex1 = String.format("%06X", c1), hex2 = String.format("%06X", c2);
+            String preview = buildLetterGradient(hex1, hex2, msg, FormatPanelConfig.formatModeStatic);
+            int used = preview.length();
+            int color = used > 256 ? 0xFFFF5555 : used > 200 ? 0xFFFFAA00 : 0xFF55FF55;
+            ctx.drawString(font, used + "/256", px+PW-50, py+196, color, false);
+        }
+
         boolean hovImp=isIn(mx,my,px+PW-82,py+PH-22,74,20);
         renderBtn(ctx,font,px+PW-82,py+PH-22,74,20,"Import",false,hovImp);
 
-        // cro easter egg
-            int croX = px + 6, croY = py + PH - 26;
-            ctx.blit(
-                    ResourceLocation.fromNamespaceAndPath("format_panel", "textures/gui/cro.png"),
-                    croX, croY, 0, 0, 20, 20, 20, 20
-            );
-            if (mx >= croX && mx < croX + 20 && my >= croY && my < croY + 20) {
-                ctx.renderTooltip(font, Component.literal("cro"), mx, my);
-            }
+        int croX = px + 6, croY = py + PH - 26;
+        ctx.blit(ResourceLocation.fromNamespaceAndPath("format_panel", "textures/gui/cro.png"),
+                croX, croY, 0, 0, 20, 20, 20, 20);
+        if (mx >= croX && mx < croX + 20 && my >= croY && my < croY + 20) {
+            ctx.renderTooltip(font, Component.literal("cro"), mx, my);
+        }
     }
 
     @Override
     public boolean mouseClicked(double mx, double my, int btn) {
         int px=(this.width-PW)/2, py=(this.height-PH)/2, half=(PW-4)/2;
-        if (isIn(mx,my,px+2,           py+22,half,20)) { activeTab=0; return true; }
-        if (isIn(mx,my,px+2+half+2,    py+22,half,20)) { activeTab=1; return true; }
+        if (isIn(mx,my,px+2,        py+22,half,20)) { activeTab=0; return true; }
+        if (isIn(mx,my,px+2+half+2, py+22,half,20)) { activeTab=1; return true; }
 
         if (activeTab==0) {
             int svX=px+10,svY=py+52,hX=svX+SV_SIZE+6,preX=hX+H_W+10;
@@ -177,7 +179,10 @@ public class ColorPickerOverlay extends Screen {
             if (isIn(mx,my,svX,svY,SV_SIZE,SV_SIZE)) { draggingSV2=true; updateSV2(mx,my,svX,svY); return true; }
             if (isIn(mx,my,hX,svY,H_W,H_H))          { draggingH2=true;  updateH2(my,svY); return true; }
             if (isIn(mx,my,px+PW-82,py+PH-22,74,20)) { importGradient(); return true; }
-            if (isIn(mx,my,messageInput.getX(),messageInput.getY(),messageInput.getWidth(),16)) { messageInput.setFocused(true); return super.mouseClicked(mx,my,btn); }
+            if (isIn(mx,my,messageInput.getX(),messageInput.getY(),messageInput.getWidth(),16)) {
+                messageInput.setFocused(true);
+                return super.mouseClicked(mx,my,btn);
+            }
         }
         return super.mouseClicked(mx,my,btn);
     }
@@ -190,7 +195,11 @@ public class ColorPickerOverlay extends Screen {
         return true;
     }
 
-    @Override public boolean mouseReleased(double mx,double my,int btn) { draggingSV1=draggingH1=draggingSV2=draggingH2=false; return super.mouseReleased(mx,my,btn); }
+    @Override
+    public boolean mouseReleased(double mx, double my, int btn) {
+        draggingSV1=draggingH1=draggingSV2=draggingH2=false;
+        return super.mouseReleased(mx,my,btn);
+    }
 
     private void updateSV1(double mx,double my,int svX,int svY){sat1=clamp((float)(mx-svX)/SV_SIZE);val1=1-clamp((float)(my-svY)/SV_SIZE);}
     private void updateH1(double my,int svY){hue1=clamp((float)(my-svY)/H_H);}
@@ -208,7 +217,9 @@ public class ColorPickerOverlay extends Screen {
         String msg=messageInput.getValue(); if(msg.isEmpty()) return;
         String hex1=String.format("%06X",hsvToRgb(hue2a,sat2a,val2a)), hex2=String.format("%06X",hsvToRgb(hue2b,sat2b,val2b));
         FormatPanelConfig.FormatMode mode=FormatPanelConfig.formatModeStatic;
-        String code=mode==FormatPanelConfig.FormatMode.MiniMessage?"<gradient:#"+hex1+":#"+hex2+">"+msg+"</gradient>":buildLetterGradient(hex1,hex2,msg,mode);
+        String code=mode==FormatPanelConfig.FormatMode.MiniMessage
+                ?"<gradient:#"+hex1+":#"+hex2+">"+msg+"</gradient>"
+                :buildLetterGradient(hex1,hex2,msg,mode);
         Minecraft.getInstance().setScreen(chatScreen);
         Minecraft.getInstance().execute(()->insertIntoChat(code));
     }
@@ -219,48 +230,63 @@ public class ColorPickerOverlay extends Screen {
         StringBuilder sb=new StringBuilder("§x"); for(char c:hex.toCharArray()) sb.append("§").append(c); return sb.toString();
     }
 
-    private String buildLetterGradient(String hex1,String hex2,String msg,FormatPanelConfig.FormatMode mode){
-        int r1=Integer.parseInt(hex1.substring(0,2),16),g1=Integer.parseInt(hex1.substring(2,4),16),b1=Integer.parseInt(hex1.substring(4,6),16);
-        int r2=Integer.parseInt(hex2.substring(0,2),16),g2=Integer.parseInt(hex2.substring(2,4),16),b2=Integer.parseInt(hex2.substring(4,6),16);
-        StringBuilder sb=new StringBuilder(); int len=msg.length();
-        for(int i=0;i<len;i++){float t=len==1?0:(float)i/(len-1);int r=(int)(r1+t*(r2-r1)),g=(int)(g1+t*(g2-g1)),b=(int)(b1+t*(b2-b1));String h=String.format("%02X%02X%02X",r,g,b);if(mode==FormatPanelConfig.FormatMode.EssentialsX)sb.append("&#").append(h);else{sb.append("§x");for(char c:h.toCharArray())sb.append("§").append(c);}sb.append(msg.charAt(i));}
+    private String buildLetterGradient(String hex1, String hex2, String msg, FormatPanelConfig.FormatMode mode) {
+        int r1=Integer.parseInt(hex1.substring(0,2),16), g1=Integer.parseInt(hex1.substring(2,4),16), b1=Integer.parseInt(hex1.substring(4,6),16);
+        int r2=Integer.parseInt(hex2.substring(0,2),16), g2=Integer.parseInt(hex2.substring(2,4),16), b2=Integer.parseInt(hex2.substring(4,6),16);
+
+        // cost per color code: EssentialsX = &#RRGGBB = 9 chars, Vanilla §x§R§G§B§B = 14 chars
+        int codeLen = mode == FormatPanelConfig.FormatMode.EssentialsX ? 9 : 14;
+        int len = msg.length();
+
+        // max unique colors that fit in 256 chars
+        int maxColors = 256 / (codeLen + 1); // +1 for the actual char
+        int step = Math.max(1, (int) Math.ceil((double) len / maxColors));
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < len; i++) {
+            if (i % step == 0) {
+                float t = len == 1 ? 0 : (float) i / (len - 1);
+                int r=(int)(r1+t*(r2-r1)), g=(int)(g1+t*(g2-g1)), b=(int)(b1+t*(b2-b1));
+                String h = String.format("%02X%02X%02X", r, g, b);
+                if (mode == FormatPanelConfig.FormatMode.EssentialsX) {
+                    sb.append("&#").append(h);
+                } else {
+                    sb.append("§x");
+                    for (char c : h.toCharArray()) sb.append("§").append(c);
+                }
+            }
+            sb.append(msg.charAt(i));
+        }
         return sb.toString();
     }
 
-    private void insertIntoChat(String code){
+    private void insertIntoChat(String code) {
         var f=((net.debrooo.mixin.client.ChatScreenAccessor)chatScreen).getChatField();
         String cur=f.getValue(); int cursor=f.getCursorPosition();
-        f.setValue(cur.substring(0,cursor)+code+cur.substring(cursor)); f.setCursorPosition(cursor+code.length());
+        f.setValue(cur.substring(0,cursor)+code+cur.substring(cursor));
+        f.setCursorPosition(cursor+code.length());
     }
 
-    private String truncate(String s,int max){return s.length()>max?s.substring(0,max)+"...":s;}
+    private String truncate(String s, int max) { return s.length()>max?s.substring(0,max)+"...":s; }
 
     private void renderBtn(GuiGraphics ctx, net.minecraft.client.gui.Font font,
                            int bx, int by, int bw, int bh, String label, boolean active, boolean hovered) {
-        // Outer black border
         ctx.fill(bx, by, bx+bw, by+bh, BTN_BORDER);
-        // Fill — blue tint when hovered OR active tab
         int fill = (hovered || active) ? BTN_FILL_HOV : BTN_FILL;
         ctx.fill(bx+1, by+1, bx+bw-1, by+bh-1, fill);
-        // Top-left highlight
         ctx.fill(bx+1, by+1, bx+bw-1, by+2, BTN_HL);
         ctx.fill(bx+1, by+1, bx+2, by+bh-1, BTN_HL);
-        // Bottom-right shadow
         ctx.fill(bx+1, by+bh-2, bx+bw-1, by+bh-1, BTN_SH);
         ctx.fill(bx+bw-2, by+1, bx+bw-1, by+bh-1, BTN_SH);
-        // Text: yellow when hovered, white otherwise
         ctx.drawCenteredString(font, label, bx+bw/2, by+(bh-font.lineHeight)/2, hovered ? BTN_TXT_HOV : BTN_TXT);
     }
 
     private void renderSVBox(GuiGraphics ctx, int x, int y, int w, int h, float hue) {
         int step = getStep();
-        for (int px2 = 0; px2 < w; px2 += step) {
-            float s = (float) px2 / w;
-            for (int py2 = 0; py2 < h; py2 += step) {
+        for (int px2 = 0; px2 < w; px2 += step)
+            for (int py2 = 0; py2 < h; py2 += step)
                 ctx.fill(x+px2, y+py2, x+px2+step, y+py2+step,
-                        0xFF000000 | hsvToRgb(hue, s, 1f-(float)py2/h));
-            }
-        }
+                        0xFF000000 | hsvToRgb(hue, (float)px2/w, 1f-(float)py2/h));
     }
 
     private void renderHueBar(GuiGraphics ctx, int x, int y, int w, int h) {
@@ -276,7 +302,11 @@ public class ColorPickerOverlay extends Screen {
             default:   return 4;
         }
     }
-    private void renderGradientStrip(GuiGraphics ctx,int x,int y,int w,int h,int c1,int c2){int r1=(c1>>16)&0xFF,g1=(c1>>8)&0xFF,b1=c1&0xFF,r2=(c2>>16)&0xFF,g2=(c2>>8)&0xFF,b2=c2&0xFF;for(int i=0;i<w;i++){float t=(float)i/w;ctx.fill(x+i,y,x+i+1,y+h,0xFF000000|((int)(r1+t*(r2-r1))<<16)|((int)(g1+t*(g2-g1))<<8)|(int)(b1+t*(b2-b1)));}}
+
+    private void renderGradientStrip(GuiGraphics ctx, int x, int y, int w, int h, int c1, int c2) {
+        int r1=(c1>>16)&0xFF,g1=(c1>>8)&0xFF,b1=c1&0xFF,r2=(c2>>16)&0xFF,g2=(c2>>8)&0xFF,b2=c2&0xFF;
+        for(int i=0;i<w;i++){float t=(float)i/w;ctx.fill(x+i,y,x+i+1,y+h,0xFF000000|((int)(r1+t*(r2-r1))<<16)|((int)(g1+t*(g2-g1))<<8)|(int)(b1+t*(b2-b1)));}
+    }
 
     private static int hsvToRgb(float h,float s,float v){int hi=(int)(h*6)%6;float f=h*6-(int)(h*6),p=v*(1-s),q=v*(1-f*s),t=v*(1-(1-f)*s),r,g,b;switch(hi){case 0:r=v;g=t;b=p;break;case 1:r=q;g=v;b=p;break;case 2:r=p;g=v;b=t;break;case 3:r=p;g=q;b=v;break;case 4:r=t;g=p;b=v;break;default:r=v;g=p;b=q;break;}return((int)(r*255)<<16)|((int)(g*255)<<8)|(int)(b*255);}
     private static float clamp(float v){return Math.max(0,Math.min(1,v));}
