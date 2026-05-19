@@ -24,7 +24,6 @@ public class FormatConfigScreen implements ModMenuApi {
 
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
-        // ── General ──────────────────────────────────────────────────────────
         ConfigCategory general = builder.getOrCreateCategory(Component.literal("General"));
 
         general.addEntry(entryBuilder.startBooleanToggle(
@@ -49,7 +48,22 @@ public class FormatConfigScreen implements ModMenuApi {
                 .setSaveConsumer(val -> FormatPanelConfig.colorPickerQuality = val)
                 .build());
 
-        // ── Preset Colors ─────────────────────────────────────────────────────
+        general.addEntry(entryBuilder.startBooleanToggle(
+                        Component.literal("Format Order Warning"),
+                        FormatPanelConfig.showFormatWarning)
+                .setDefaultValue(false)
+                .setTooltip(Component.literal("Warns in the action bar when a formatting code (bold, italic, ...) appears before a color code"))
+                .setSaveConsumer(val -> FormatPanelConfig.showFormatWarning = val)
+                .build());
+
+        general.addEntry(entryBuilder.startBooleanToggle(
+                        Component.literal("Show Code Labels"),
+                        FormatPanelConfig.showFormatCodeLabels)
+                .setDefaultValue(true)
+                .setTooltip(Component.literal("Shows the format code character on each button (e.g. 'l', '4'). Not used in MiniMessage mode."))
+                .setSaveConsumer(val -> FormatPanelConfig.showFormatCodeLabels = val)
+                .build());
+
         ConfigCategory presets = builder.getOrCreateCategory(Component.literal("Preset Colors"));
 
         presets.addEntry(entryBuilder.startBooleanToggle(

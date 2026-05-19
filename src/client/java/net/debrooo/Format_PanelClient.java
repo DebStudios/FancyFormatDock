@@ -7,10 +7,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Pattern;
 
 public class Format_PanelClient implements ClientModInitializer {
 
@@ -41,6 +43,24 @@ public class Format_PanelClient implements ClientModInitializer {
 			"<strikethrough>", "<obfuscated>"
 	};
 
+	private static final String[] LABELS_CODE = {
+			"4", "c", "6", "e",
+			"2", "a", "b", "3",
+			"1", "9", "d", "5",
+			"f", "7", "8", "0",
+			"l", "n", "o", "r",
+			"m", "k"
+	};
+
+	private static final String[] LABELS_MINIMESSAGE = {
+			"§r", "§r", "§r", "§r",
+			"§r", "§r", "§r", "§r",
+			"§r", "§r", "§r", "§r",
+			"§r", "§r", "§r", "§r",
+			"§lb", "§nu", "§oi", "R",
+			"§mS", "§kK"
+	};
+
 	private static final int[] COLORS = {
 			0xFFAA0000, 0xFFFF5555, 0xFFFFAA00, 0xFFFFFF55,
 			0xFF00AA00, 0xFF55FF55, 0xFF55FFFF, 0xFF00AAAA,
@@ -50,14 +70,9 @@ public class Format_PanelClient implements ClientModInitializer {
 			0xFFC6C6C6, 0xFFC6C6C6,
 	};
 
-	private static final String[] LABELS = {
-			"§r", "§r", "§r", "§r",
-			"§r", "§r", "§r", "§r",
-			"§r", "§r", "§r", "§r",
-			"§r", "§r", "§r", "§r",
-			"§lb", "§nu", "§oi", "R",
-			"§mS", "§kK"
-	};
+	// only matches a format code immediately adjacent to a color code — no text in between
+	private static final Pattern FORMAT_BEFORE_COLOR =
+			Pattern.compile("[§&][lnokmr](?:[§&][lnokmr])*[§&][0-9a-fA-F]");
 
 	private static final ResourceLocation TOGGLE_ICON =
 			ResourceLocation.fromNamespaceAndPath("format_panel", "textures/gui/toggle.png");
@@ -72,7 +87,6 @@ public class Format_PanelClient implements ClientModInitializer {
 			if (screen instanceof ChatScreen chatScreen) {
 				buttons.clear();
 
-				// Toggle button — always visible
 				int existingButtons = screen.children().stream()
 						.filter(w -> w instanceof net.minecraft.client.gui.components.AbstractWidget)
 						.map(w -> (net.minecraft.client.gui.components.AbstractWidget) w)
@@ -90,7 +104,13 @@ public class Format_PanelClient implements ClientModInitializer {
 							FormatPanelConfig.enabledStatic = !FormatPanelConfig.enabledStatic;
 							FormatPanelConfig.save();
 							Minecraft mc = Minecraft.getInstance();
-							mc.execute(() -> mc.setScreen(new ChatScreen("")));
+							EditBox chatField = ((net.debrooo.mixin.client.ChatScreenAccessor) chatScreen).getChatField();
+							String currentText = chatField.getValue();
+							int currentCursor = chatField.getCursorPosition();
+							mc.execute(() -> {
+								ChatScreen newScreen = new ChatScreen(currentText);
+								mc.setScreen(newScreen);
+							});
 						}
 				));
 
@@ -102,45 +122,54 @@ public class Format_PanelClient implements ClientModInitializer {
 					int startX = scaledWidth - (cols * (btnSize + margin)) - 6;
 					int startY = 11;
 
-					// Main color buttons
 					for (int i = 0; i < 20; i++) {
 						int col = i % cols;
 						int row = i / cols;
 						int x = startX + col * (btnSize + margin);
 						int y = startY + row * (btnSize + margin);
 
-						final int idx      = i;
-						final int bgColor  = COLORS[i];
-						final String label = LABELS[i];
+						final int idx     = i;
+						final int bgColor = COLORS[i];
 						final boolean dark = isDark(bgColor);
 
 						buttons.add(new ColorButton(
 								x, y, btnSize, btnSize,
-								label, bgColor, dark,
+								"", bgColor, dark,
 								b2 -> insertCode(chatScreen, getActiveCodes()[idx])
-						));
+						) {
+							@Override
+							String getDynamicLabel() { return getActiveLabel(idx); }
+						});
 					}
 
-					// Extra row: +, strikethrough, obfuscated
 					int extraY = startY + 5 * (btnSize + margin);
 					int plusX  = startX + 1 * (btnSize + margin);
 
 					buttons.add(new ColorButton(plusX, extraY, btnSize, btnSize,
 							"+", 0xFF444444, true,
-							b2 -> Minecraft.getInstance().execute(() ->
-									Minecraft.getInstance().setScreen(
-											new ColorPickerOverlay(chatScreen, chatScreen)
-									)
-							)));
+							b2 -> {
+								EditBox chatField = ((net.debrooo.mixin.client.ChatScreenAccessor) chatScreen).getChatField();
+								String currentText = chatField.getValue();
+								int currentCursor = chatField.getCursorPosition();
+								Minecraft.getInstance().execute(() -> {
+									ColorPickerOverlay overlay = new ColorPickerOverlay(chatScreen, chatScreen);
+									overlay.setPendingChatState(currentText, currentCursor);
+									Minecraft.getInstance().setScreen(overlay);
+								});
+							}));
 
 					buttons.add(new ColorButton(startX + 2*(btnSize+margin), extraY, btnSize, btnSize,
-							LABELS[20], COLORS[20], isDark(COLORS[20]),
-							b2 -> insertCode(chatScreen, getActiveCodes()[20])));
-					buttons.add(new ColorButton(startX + 3*(btnSize+margin), extraY, btnSize, btnSize,
-							LABELS[21], COLORS[21], isDark(COLORS[21]),
-							b2 -> insertCode(chatScreen, getActiveCodes()[21])));
+							"", COLORS[20], isDark(COLORS[20]),
+							b2 -> insertCode(chatScreen, getActiveCodes()[20])) {
+						@Override String getDynamicLabel() { return getActiveLabel(20); }
+					});
 
-					// Preset color buttons — rendered to the left of the main dock
+					buttons.add(new ColorButton(startX + 3*(btnSize+margin), extraY, btnSize, btnSize,
+							"", COLORS[21], isDark(COLORS[21]),
+							b2 -> insertCode(chatScreen, getActiveCodes()[21])) {
+						@Override String getDynamicLabel() { return getActiveLabel(21); }
+					});
+
 					if (FormatPanelConfig.presetButtonsEnabled) {
 						int presetX = startX - (btnSize + margin);
 						int renderedCount = 0;
@@ -169,6 +198,18 @@ public class Format_PanelClient implements ClientModInitializer {
 				ScreenEvents.afterRender(screen).register(
 						(s, context, mouseX, mouseY, tickDelta) -> {
 							for (ColorButton btn : buttons) btn.render(context, (double) mouseX, (double) mouseY);
+
+							if (FormatPanelConfig.showFormatWarning
+									&& FormatPanelConfig.formatModeStatic != FormatPanelConfig.FormatMode.MiniMessage) {
+								EditBox chatField = ((net.debrooo.mixin.client.ChatScreenAccessor) chatScreen).getChatField();
+								String text = chatField.getValue();
+								if (FORMAT_BEFORE_COLOR.matcher(text).find()) {
+									Minecraft.getInstance().gui.setOverlayMessage(
+											Component.literal("§cFormat prefix before color prefix has no effect"),
+											false
+									);
+								}
+							}
 						}
 				);
 
@@ -186,6 +227,13 @@ public class Format_PanelClient implements ClientModInitializer {
 		if (mode == FormatPanelConfig.FormatMode.Vanilla)     return CODES_VANILLA;
 		if (mode == FormatPanelConfig.FormatMode.MiniMessage) return CODES_MINIMESSAGE;
 		return CODES_ESSENTIALS;
+	}
+
+	private String getActiveLabel(int idx) {
+		if (FormatPanelConfig.formatModeStatic == FormatPanelConfig.FormatMode.MiniMessage) {
+			return LABELS_MINIMESSAGE[idx];
+		}
+		return FormatPanelConfig.showFormatCodeLabels ? LABELS_CODE[idx] : "";
 	}
 
 	private String getColorCodeForHex(String hex) {
@@ -227,6 +275,8 @@ public class Format_PanelClient implements ClientModInitializer {
 			this.darkBg = darkBg; this.onClick = onClick;
 		}
 
+		String getDynamicLabel() { return label; }
+
 		void render(GuiGraphics ctx, double mouseX, double mouseY) {
 			boolean hovered = isHovered(mouseX, mouseY);
 			ctx.fill(x, y, x+width, y+height, 0xFF373737);
@@ -236,7 +286,8 @@ public class Format_PanelClient implements ClientModInitializer {
 			ctx.fill(x+width-2, y+1, x+width-1, y+height-1, 0xFF1A1A1A);
 			ctx.fill(x+2, y+2, x+width-2, y+height-2, hovered ? brighten(bgColor) : bgColor);
 
-			if (label.isEmpty()) {
+			String renderLabel = getDynamicLabel();
+			if (renderLabel.isEmpty()) {
 				ctx.blit(
 						TOGGLE_ICON,
 						x+2, y+2, 0, 0, width-4, height-4, width-4, height-4
@@ -247,7 +298,7 @@ public class Format_PanelClient implements ClientModInitializer {
 				ctx.pose().pushPose();
 				ctx.pose().translate(x + width/2f, y + height/2f, 0);
 				ctx.pose().scale(0.9f, 0.9f, 1f);
-				ctx.drawString(font, label, -font.width(label)/2, -font.lineHeight/2, textColor, false);
+				ctx.drawString(font, renderLabel, -font.width(renderLabel)/2, -font.lineHeight/2, textColor, false);
 				ctx.pose().popPose();
 			}
 		}

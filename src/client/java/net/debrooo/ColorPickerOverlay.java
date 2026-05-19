@@ -22,6 +22,9 @@ public class ColorPickerOverlay extends Screen {
     private boolean draggingSV2 = false, draggingH2 = false;
     private EditBox messageInput;
 
+    private String pendingChatText = null;
+    private int pendingChatCursor = -1;
+
     private static final int PW = 290, PH = 270;
     private static final int SV_SIZE = 100, H_W = 14, H_H = SV_SIZE;
 
@@ -42,6 +45,11 @@ public class ColorPickerOverlay extends Screen {
         this.chatScreen = chatScreen;
     }
 
+    public void setPendingChatState(String text, int cursor) {
+        this.pendingChatText = text;
+        this.pendingChatCursor = cursor;
+    }
+
     @Override
     protected void init() {
         int px = (this.width - PW) / 2, py = (this.height - PH) / 2;
@@ -50,6 +58,12 @@ public class ColorPickerOverlay extends Screen {
         messageInput.setMaxLength(128);
         messageInput.setValue("buh");
         this.addWidget(messageInput);
+
+        if (pendingChatText != null) {
+            EditBox chatField = ((net.debrooo.mixin.client.ChatScreenAccessor) chatScreen).getChatField();
+            chatField.setValue(pendingChatText);
+            chatField.setCursorPosition(pendingChatCursor);
+        }
     }
 
     @Override
@@ -140,7 +154,6 @@ public class ColorPickerOverlay extends Screen {
         messageInput.setX(px+10); messageInput.setY(py+206);
         messageInput.render(ctx,0,0,0);
 
-        // char count indicator
         String msg = messageInput.getValue();
         if (!msg.isEmpty()) {
             String hex1 = String.format("%06X", c1), hex2 = String.format("%06X", c2);
@@ -234,12 +247,10 @@ public class ColorPickerOverlay extends Screen {
         int r1=Integer.parseInt(hex1.substring(0,2),16), g1=Integer.parseInt(hex1.substring(2,4),16), b1=Integer.parseInt(hex1.substring(4,6),16);
         int r2=Integer.parseInt(hex2.substring(0,2),16), g2=Integer.parseInt(hex2.substring(2,4),16), b2=Integer.parseInt(hex2.substring(4,6),16);
 
-        // cost per color code: EssentialsX = &#RRGGBB = 9 chars, Vanilla §x§R§G§B§B = 14 chars
         int codeLen = mode == FormatPanelConfig.FormatMode.EssentialsX ? 9 : 14;
         int len = msg.length();
 
-        // max unique colors that fit in 256 chars
-        int maxColors = 256 / (codeLen + 1); // +1 for the actual char
+        int maxColors = 256 / (codeLen + 1);
         int step = Math.max(1, (int) Math.ceil((double) len / maxColors));
 
         StringBuilder sb = new StringBuilder();

@@ -9,21 +9,23 @@ import java.nio.file.*;
 
 public class FormatPanelConfig {
 
-    // Instance fields (for GSON serialization) — all suffixed with Field to avoid clash
     public boolean enabledField = true;
     public FormatMode formatModeField = FormatMode.EssentialsX;
     public RenderQuality colorPickerQualityField = RenderQuality.Medium;
     public boolean presetButtonsEnabledField = false;
+    public boolean showFormatWarningField = false;
+    public boolean showFormatCodeLabelsField = true;
     public PresetButton[] presetButtonsField = {
             new PresetButton(), new PresetButton(),
             new PresetButton(), new PresetButton()
     };
 
-    // Static fields (used at runtime)
     public static boolean enabledStatic = true;
     public static FormatMode formatModeStatic = FormatMode.EssentialsX;
     public static RenderQuality colorPickerQuality = RenderQuality.Medium;
     public static boolean presetButtonsEnabled = false;
+    public static boolean showFormatWarning = false;
+    public static boolean showFormatCodeLabels = true;
     public static PresetButton[] presetButtons = {
             new PresetButton(), new PresetButton(),
             new PresetButton(), new PresetButton()
@@ -60,9 +62,11 @@ public class FormatPanelConfig {
         try (Reader r = Files.newBufferedReader(CONFIG_PATH)) {
             FormatPanelConfig data = GSON.fromJson(r, FormatPanelConfig.class);
             enabledStatic        = data.enabledField;
-            formatModeStatic     = data.formatModeField != null          ? data.formatModeField          : FormatMode.EssentialsX;
-            colorPickerQuality   = data.colorPickerQualityField != null  ? data.colorPickerQualityField  : RenderQuality.Medium;
+            formatModeStatic     = data.formatModeField != null         ? data.formatModeField         : FormatMode.EssentialsX;
+            colorPickerQuality   = data.colorPickerQualityField != null ? data.colorPickerQualityField : RenderQuality.Medium;
             presetButtonsEnabled = data.presetButtonsEnabledField;
+            showFormatWarning    = data.showFormatWarningField;
+            showFormatCodeLabels = data.showFormatCodeLabelsField;
             if (data.presetButtonsField != null && data.presetButtonsField.length == 4) {
                 presetButtons = data.presetButtonsField;
             }
@@ -78,6 +82,8 @@ public class FormatPanelConfig {
             data.formatModeField           = formatModeStatic;
             data.colorPickerQualityField   = colorPickerQuality;
             data.presetButtonsEnabledField = presetButtonsEnabled;
+            data.showFormatWarningField    = showFormatWarning;
+            data.showFormatCodeLabelsField = showFormatCodeLabels;
             data.presetButtonsField        = presetButtons;
             GSON.toJson(data, w);
         } catch (Exception e) {
